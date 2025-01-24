@@ -1,0 +1,4 @@
+<script>start("/Users/poh_kirito/weather/templates/");</script>
+<script>onHasParentDirectory();</script>
+<script>addRow("forecast_table.html","forecast_table.html",0,1562,"1.5 kB",1737722526,"2025/1/24 21:42:06");</script>
+<script>addRow("index.html","index.html",0,3783,"3.7 kB",1737723518,"2025/1/24 21:58:38");</script>
