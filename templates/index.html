@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>天気予報アプリ</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        select, button {
+            margin: 10px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .error {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>天気予報アプリ</h1>
+    <form id="region-form">
+        <label for="area_code">地域を選択してください：</label>
+        <select id="area_code" required>
+            <option value="">--- 選択してください ---</option>
+            {% for region in regions %}
+            <option value="{{ region.code }}">{{ region.name }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">天気予報を見る</button>
+    </form>
+
+    <div id="forecast-result"></div>
+
+    <script>
+        document.getElementById('region-form').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const areaCode = document.getElementById('area_code').value;
+            const resultDiv = document.getElementById('forecast-result');
+
+            if (!areaCode) {
+                resultDiv.innerHTML = `<p class="error">地域を選択してください。</p>`;
+                return;
+            }
+
+            try {
+                resultDiv.innerHTML = "<p>読み込み中...</p>";
+                const response = await fetch('/forecast', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ area_code: areaCode })
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    resultDiv.innerHTML = `<p class="error">エラー: ${data.error}</p>`;
+                } else {
+                    let tableHTML = `
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>日付</th>
+                                    <th>地域</th>
+                                    <th>天気</th>
+                                    <th>気温</th>
+                                    <th>降水確率</th>
+                                    <th>風</th>
+                                    <th>波</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+
+                    data.forEach(row => {
+                        tableHTML += `
+                            <tr>
+                                <td>${row.Date}</td>
+                                <td>${row.Area}</td>
+                                <td>${row.Weather}</td>
+                                <td>${row.Temperature}°C</td>
+                                <td>${row.Precipitation || '--'}%</td>
+                                <td>${row.Wind || '--'}</td>
+                                <td>${row.Wave || '--'}</td>
+                            </tr>
+                        `;
+                    });
+
+                    tableHTML += `
+                            </tbody>
+                        </table>
+                    `;
+
+                    resultDiv.innerHTML = tableHTML;
+                }
+            } catch (error) {
+                console.error('Error fetching forecast:', error);
+                resultDiv.innerHTML = `<p class="error">天気予報を取得できませんでした。</p>`;
+            }
+        });
+    </script>
+</body>
+</html>
